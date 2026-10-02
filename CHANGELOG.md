@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/gabrielhrabelo/adlo/compare/adlo-v0.1.0...adlo-v0.2.0) (2026-10-02)
+
+
+### Adicionado
+
+* test-endpoint ([b710ba9](https://github.com/gabrielhrabelo/adlo/commit/b710ba9706db3667e70e508b82e97ad6de0b17d7))
+
+
+### Corrigido
+
+* fixed typing error in release-please config ([36f3a08](https://github.com/gabrielhrabelo/adlo/commit/36f3a0808d67984572aa60d57de610f55c4e6535))
+
 ## [0.1.0](https://github.com/gabrielhrabelo/adlo/compare/adlo-v0.0.2...adlo-v0.1.0) (2026-10-02)
 
 
