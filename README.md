@@ -82,11 +82,11 @@ Edite o arquivo `.env` e configure, no mínimo:
 - `POSTGRES_DATABASE`
 - `DATABASE_URL`
 - `JWT_SECRET`
-- `DOCUMENTOS_SECRET`
+- `DOCUMENTOS_SECRET` (recomendado)
 
 Use segredos fortes, com pelo menos 32 caracteres. Não compartilhe nem versione seu arquivo `.env`.
 
-`DOCUMENTOS_SECRET` deriva a chave AES-256-GCM usada para cifrar os documentos anexados em disco. Se ele for trocado, os arquivos já enviados deixam de poder ser lidos.
+`DOCUMENTOS_SECRET` deriva a chave AES-256-GCM usada para cifrar os documentos anexados em disco. Se ele for trocado, os arquivos já enviados deixam de poder ser lidos. Sem ele, a aplicação usa o `JWT_SECRET` e registra um aviso no log; nesse caso, trocar o `JWT_SECRET` também torna os documentos ilegíveis.
 
 Variáveis opcionais:
 

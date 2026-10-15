@@ -17,7 +17,8 @@ export function buildApp() {
   const app = Fastify({ logger: true })
   const events = new InMemoryEventBus()
 
-  const user = createUserModule({ db, events, jwtSecret: requireEnv('JWT_SECRET') })
+  const jwtSecret = requireEnv('JWT_SECRET')
+  const user = createUserModule({ db, events, jwtSecret })
   const cliente = createClienteModule({ db, events })
   const processo = createProcessoModule({ db, events })
   const atendimento = createAtendimentoModule({ db, events })
@@ -31,7 +32,7 @@ export function buildApp() {
     db,
     events,
     diretorio: process.env['DOCUMENTOS_DIR'] ?? 'storage/documentos',
-    segredoDeCriptografia: requireEnv('DOCUMENTOS_SECRET'),
+    segredoDeCriptografia: segredoDosDocumentos(app.log, jwtSecret),
   })
   const agendamento = createAgendamentoModule({
     db,
@@ -78,6 +79,16 @@ function criarNotificadorDeEmail(host: string): EmailNotificador {
     ...(user && { user }),
     ...(pass && { pass }),
   })
+}
+
+// Sem DOCUMENTOS_SECRET, usa o JWT_SECRET: a chave dos documentos continua sendo
+// derivada à parte (HKDF), mas trocar o JWT_SECRET deixaria os arquivos ilegíveis
+function segredoDosDocumentos(log: { warn(msg: string): void }, jwtSecret: string): string {
+  const segredo = process.env['DOCUMENTOS_SECRET']
+  if (segredo) return segredo
+
+  log.warn('DOCUMENTOS_SECRET não definida; usando JWT_SECRET para cifrar os documentos. Defina DOCUMENTOS_SECRET no .env')
+  return jwtSecret
 }
 
 function requireEnv(name: string): string {
