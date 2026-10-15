@@ -1,0 +1,11 @@
+meta {
+  name: Detalhar agendamento
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/agendamentos/{{agendamentoId}}
+  body: none
+  auth: inherit
+}

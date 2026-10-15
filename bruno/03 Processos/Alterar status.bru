@@ -1,0 +1,21 @@
+meta {
+  name: Alterar status do processo
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/processos/{{processoId}}/status
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "status": "EM_ANDAMENTO"
+  }
+}
+
+docs {
+  RF08 - TRIAGEM, DOCUMENTACAO, PROTOCOLO, EM_ANDAMENTO, AGUARDANDO, CONCLUIDO ou ARQUIVADO.
+}

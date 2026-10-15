@@ -1,0 +1,11 @@
+meta {
+  name: Cancelar agendamento
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/agendamentos/{{agendamentoId}}/cancelar
+  body: none
+  auth: inherit
+}

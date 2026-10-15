@@ -1,0 +1,11 @@
+meta {
+  name: Concluir agendamento
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/agendamentos/{{agendamentoId}}/concluir
+  body: none
+  auth: inherit
+}

@@ -1,0 +1,23 @@
+meta {
+  name: Anexar documento
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/clientes/{{clienteId}}/documentos
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  arquivo: @file(arquivos/exemplo.pdf)
+}
+
+script:post-response {
+  if (res.status === 201) bru.setEnvVar("documentoId", res.body.id);
+}
+
+docs {
+  RF12 - Anexar documento (multipart, campo `arquivo`). Aceita PDF, JPEG, PNG, WebP, DOC, DOCX e ODT até 20 MB.
+}

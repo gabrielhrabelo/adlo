@@ -1,0 +1,18 @@
+meta {
+  name: Alterar senha
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/usuarios/me/senha
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "senhaAtual": "{{senha}}",
+    "novaSenha": "{{senha}}"
+  }
+}

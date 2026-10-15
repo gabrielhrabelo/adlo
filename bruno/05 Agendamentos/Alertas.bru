@@ -1,0 +1,21 @@
+meta {
+  name: Alertas (atrasados e próximos)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/agendamentos/alertas?dias=7
+  body: none
+  auth: inherit
+}
+
+params:query {
+  dias: 7
+  ~todos: true
+  ~usuarioId: {{usuarioId}}
+}
+
+docs {
+  RF14 - Alertas na plataforma. Por padrão, do usuário logado; `todos=true` mostra os do escritório.
+}

@@ -1,0 +1,11 @@
+meta {
+  name: Excluir agendamento
+  type: http
+  seq: 10
+}
+
+delete {
+  url: {{baseUrl}}/agendamentos/{{agendamentoId}}
+  body: none
+  auth: inherit
+}

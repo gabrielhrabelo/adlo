@@ -1,0 +1,22 @@
+meta {
+  name: Editar processo
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/processos/{{processoId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "titulo": "Auxílio-doença - restabelecimento",
+    "tribunal": "TRF1 - Goiânia"
+  }
+}
+
+docs {
+  RF07 - Editar processo.
+}

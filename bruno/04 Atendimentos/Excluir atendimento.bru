@@ -1,0 +1,15 @@
+meta {
+  name: Excluir atendimento
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/clientes/{{clienteId}}/atendimentos/{{atendimentoId}}
+  body: none
+  auth: inherit
+}
+
+docs {
+  Somente o autor ou um advogado podem excluir.
+}

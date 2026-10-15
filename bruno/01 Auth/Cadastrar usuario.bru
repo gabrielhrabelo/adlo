@@ -1,0 +1,28 @@
+meta {
+  name: Cadastrar usuário
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/usuarios
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nome": "Estagiário",
+    "email": "{{emailNovo}}",
+    "senha": "Senha123",
+    "papel": "ESTAGIARIO"
+  }
+}
+
+script:pre-request {
+  bru.setVar("emailNovo", `estagiario.${Date.now()}@adlo.local`);
+}
+
+docs {
+  Somente usuários com papel ADVOGADO podem cadastrar novos acessos.
+}

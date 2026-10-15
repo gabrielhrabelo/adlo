@@ -1,0 +1,11 @@
+meta {
+  name: Confirmar agendamento
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/agendamentos/{{agendamentoId}}/confirmar
+  body: none
+  auth: inherit
+}
