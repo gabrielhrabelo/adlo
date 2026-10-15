@@ -3,6 +3,7 @@ import { createAgendamentoModule } from "./modules/agendamento/index.ts";
 import { EmailNotificador } from "./modules/agendamento/infrastructure/notificadores.ts";
 import { createAtendimentoModule } from "./modules/atendimento/index.ts";
 import { createClienteModule } from "./modules/cliente/index.ts";
+import { createDocumentoModule } from "./modules/documento/index.ts";
 import { createProcessoModule } from "./modules/processo/index.ts";
 import { createUserModule } from "./modules/user/index.ts";
 import { db } from "./prisma/db.ts";
@@ -18,6 +19,12 @@ export function buildApp() {
   const cliente = createClienteModule({ db, events })
   const processo = createProcessoModule({ db, events })
   const atendimento = createAtendimentoModule({ db, events })
+  const documento = createDocumentoModule({
+    db,
+    events,
+    diretorio: process.env['DOCUMENTOS_DIR'] ?? 'storage/documentos',
+    segredoDeCriptografia: requireEnv('DOCUMENTOS_SECRET'),
+  })
   const agendamento = createAgendamentoModule({
     db,
     events,
@@ -38,6 +45,7 @@ export function buildApp() {
     protegido.register(processo.routes)
     protegido.register(atendimento.routes)
     protegido.register(agendamento.routes)
+    protegido.register(documento.routes)
   })
 
   app.addHook('onReady', async () => { agendamento.alertas.iniciar() })

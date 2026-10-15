@@ -5,3 +5,4 @@ dist/
 prisma-8.md
 src/generated/
 .claude
+storage/
