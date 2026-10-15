@@ -161,4 +161,4 @@ Contribuições não são aceitas no momento. Apenas para os integrantes do proj
 
 ## Licença
 
-A licença do projeto ainda não foi definida.
+Este projeto está licenciado sob a **MIT License**. Consulte o arquivo [`LICENSE`](./LICENSE) para ler o texto completo da licença.
