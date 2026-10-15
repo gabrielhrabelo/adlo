@@ -13,6 +13,7 @@ export class GetUserProfile {
       id: user.id,
       nome: user.nome,
       email: user.email,
+      papel: user.papel,
       createdAt: user.createdAt.toISOString()
     }
   }

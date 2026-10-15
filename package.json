@@ -2,9 +2,17 @@
   "name": "adlo",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/main.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test \"src/**/*.test.ts\"",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "user:create": "tsx src/scripts/create-user.ts"
   },
   "keywords": [],
   "author": "",
@@ -20,11 +28,22 @@
   "type": "module",
   "devDependencies": {
     "@types/node": "26.6.5",
+    "@types/nodemailer": "8.0.2",
+    "@types/pdfkit": "0.17.6",
     "@types/pg": "8.23.1",
+    "prisma": "7.10.0",
+    "tsx": "4.23.15",
     "typescript": "7.0.2"
   },
   "dependencies": {
+    "@fastify/multipart": "10.1.3",
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "dotenv": "18.0.8",
+    "fast-jwt": "6.3.4",
     "fastify": "5.12.7",
+    "nodemailer": "10.1.1",
+    "pdfkit": "0.20.2",
     "pg": "8.23.1"
   }
 }

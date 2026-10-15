@@ -1,0 +1,285 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Modelagem baseada no MER do projeto (Figura 7) e no diagrama de classes (Figura 9).
+
+enum PapelDeUsuario {
+  ADVOGADO
+  ESTAGIARIO
+  ADMINISTRATIVO
+}
+
+enum TipoDeTelefone {
+  CELULAR
+  RESIDENCIAL
+  COMERCIAL
+}
+
+enum TipoDeEndereco {
+  RESIDENCIAL
+  COMERCIAL
+}
+
+enum AreaDoProcesso {
+  INSS
+  DPVAT
+}
+
+enum StatusDoProcesso {
+  TRIAGEM
+  DOCUMENTACAO
+  PROTOCOLO
+  EM_ANDAMENTO
+  AGUARDANDO
+  CONCLUIDO
+  ARQUIVADO
+}
+
+enum TipoDeAgendamento {
+  PRAZO
+  AUDIENCIA
+  COMPROMISSO
+}
+
+enum StatusDoAgendamento {
+  PENDENTE
+  CONFIRMADO
+  CONCLUIDO
+  CANCELADO
+}
+
+enum CanalDeAtendimento {
+  PRESENCIAL
+  TELEFONE
+  WHATSAPP
+  EMAIL
+}
+
+model Usuario {
+  id                 String         @id @default(uuid(7))
+  nome               String
+  email              String         @unique
+  senhaHash          String
+  papel              PapelDeUsuario @default(ADVOGADO)
+  ativo              Boolean        @default(true)
+  criadoEm           DateTime       @default(now()) @db.Timestamptz(3)
+  atualizadoEm       DateTime       @updatedAt @db.Timestamptz(3)
+  versao             Int            @default(1)
+  clientes           Cliente[]
+  agendamentos       Agendamento[]
+  boards             Board[]
+  atendimentos       Atendimento[]
+  documentosEnviados Documento[]
+  logsAuditoria      LogAuditoria[]
+
+  @@index([ativo])
+}
+
+model Cliente {
+  id             String        @id @default(uuid(7))
+  // Usuário responsável pelo cliente (relação "Mantém" do MER)
+  usuarioId      String
+  nome           String
+  cpfCnpj        String?       @unique
+  email          String?
+  dataNascimento DateTime?     @db.Date
+  observacoes    String?
+  ativo          Boolean       @default(true)
+  criadoEm       DateTime      @default(now()) @db.Timestamptz(3)
+  atualizadoEm   DateTime      @updatedAt @db.Timestamptz(3)
+  versao         Int           @default(1)
+  usuario        Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  telefones      Telefone[]
+  enderecos      Endereco[]
+  processos      Processo[]
+  agendamentos   Agendamento[]
+  atendimentos   Atendimento[]
+  documentos     Documento[]
+
+  @@index([usuarioId])
+  @@index([nome])
+  @@index([ativo])
+}
+
+model Telefone {
+  id        String         @id @default(uuid(7))
+  clienteId String
+  tipo      TipoDeTelefone @default(CELULAR)
+  numero    String
+  cliente   Cliente        @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([clienteId])
+}
+
+model Endereco {
+  id          String         @id @default(uuid(7))
+  clienteId   String
+  tipo        TipoDeEndereco @default(RESIDENCIAL)
+  rua         String
+  numero      String?
+  complemento String?
+  bairro      String?
+  cep         String
+  cidade      String
+  uf          String         @db.Char(2)
+  cliente     Cliente        @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([clienteId])
+}
+
+model Processo {
+  id             String           @id @default(uuid(7))
+  clienteId      String
+  // Opcional: requerimentos administrativos no INSS ainda não têm número CNJ
+  numeroProcesso String?          @unique
+  titulo         String
+  area           AreaDoProcesso
+  status         StatusDoProcesso @default(TRIAGEM)
+  tribunal       String?
+  descricao      String?
+  dataAbertura   DateTime         @default(now()) @db.Date
+  criadoEm       DateTime         @default(now()) @db.Timestamptz(3)
+  atualizadoEm   DateTime         @updatedAt @db.Timestamptz(3)
+  versao         Int              @default(1)
+  cliente        Cliente          @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  agendamentos   Agendamento[]
+  atendimentos   Atendimento[]
+  cards          Card[]
+
+  @@index([clienteId])
+  @@index([status])
+  @@index([area])
+}
+
+model Agendamento {
+  id             String              @id @default(uuid(7))
+  clienteId      String
+  usuarioId      String
+  processoId     String?
+  titulo         String
+  tipo           TipoDeAgendamento   @default(COMPROMISSO)
+  status         StatusDoAgendamento @default(PENDENTE)
+  dataHora       DateTime            @db.Timestamptz(3)
+  duracaoMinutos Int                 @default(60)
+  lembrarEm      DateTime?           @db.Timestamptz(3)
+  notificadoEm   DateTime?           @db.Timestamptz(3)
+  concluidoEm    DateTime?           @db.Timestamptz(3)
+  criadoEm       DateTime            @default(now()) @db.Timestamptz(3)
+  atualizadoEm   DateTime            @updatedAt @db.Timestamptz(3)
+  versao         Int                 @default(1)
+  cliente        Cliente             @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  usuario        Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  processo       Processo?           @relation(fields: [processoId], references: [id], onDelete: SetNull)
+
+  @@index([clienteId])
+  @@index([processoId])
+  // "Verificar se o horário está ocupado" (Figura 5)
+  @@index([usuarioId, dataHora])
+  // Varredura de alertas automáticos (RF14)
+  @@index([status, lembrarEm, notificadoEm])
+}
+
+model Atendimento {
+  id         String             @id @default(uuid(7))
+  clienteId  String
+  usuarioId  String?
+  processoId String?
+  assunto    String
+  conteudo   String
+  canal      CanalDeAtendimento @default(PRESENCIAL)
+  ocorridoEm DateTime           @default(now()) @db.Timestamptz(3)
+  criadoEm   DateTime           @default(now()) @db.Timestamptz(3)
+  cliente    Cliente            @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  usuario    Usuario?           @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  processo   Processo?          @relation(fields: [processoId], references: [id], onDelete: SetNull)
+
+  @@index([clienteId, ocorridoEm])
+}
+
+model Documento {
+  id                 String   @id @default(uuid(7))
+  clienteId          String
+  enviadoPorId       String?
+  nomeArquivo        String
+  tipo               String
+  chaveArmazenamento String   @unique
+  tamanhoBytes       Int
+  sha256             String
+  dataUpload         DateTime @default(now()) @db.Timestamptz(3)
+  cliente            Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  enviadoPor         Usuario? @relation(fields: [enviadoPorId], references: [id], onDelete: SetNull)
+
+  @@index([clienteId])
+}
+
+model Board {
+  id        String   @id @default(uuid(7))
+  usuarioId String
+  nome      String
+  criadoEm  DateTime @default(now()) @db.Timestamptz(3)
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  colunas   Coluna[]
+
+  @@index([usuarioId])
+}
+
+model Coluna {
+  id      String            @id @default(uuid(7))
+  boardId String
+  nome    String
+  ordem   Int
+  // Status aplicado ao processo quando o card é movido para esta coluna (RF17)
+  status  StatusDoProcesso?
+  board   Board             @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards   Card[]
+
+  @@index([boardId, ordem])
+}
+
+model Card {
+  id         String   @id @default(uuid(7))
+  colunaId   String
+  processoId String
+  titulo     String
+  ordem      Int
+  coluna     Coluna   @relation(fields: [colunaId], references: [id], onDelete: Cascade)
+  processo   Processo @relation(fields: [processoId], references: [id], onDelete: Cascade)
+
+  @@index([colunaId, ordem])
+  @@index([processoId])
+}
+
+// Outbox transacional: guarda eventos de qualquer agregado, por isso sem FK
+model EventoOutbox {
+  id           String    @id @default(uuid(7))
+  tipoAgregado String
+  agregadoId   String
+  tipoEvento   String
+  payload      Json
+  criadoEm     DateTime  @default(now()) @db.Timestamptz(3)
+  publicadoEm  DateTime? @db.Timestamptz(3)
+
+  @@index([publicadoEm, criadoEm])
+  @@index([tipoAgregado, agregadoId])
+}
+
+model LogAuditoria {
+  id           String   @id @default(uuid(7))
+  usuarioId    String?
+  acao         String
+  tipoEntidade String
+  entidadeId   String?
+  enderecoIp   String?
+  criadoEm     DateTime @default(now()) @db.Timestamptz(3)
+  usuario      Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@index([tipoEntidade, entidadeId])
+  @@index([criadoEm])
+}

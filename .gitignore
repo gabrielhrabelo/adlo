@@ -1,2 +1,6 @@
 node_modules
 .env
+node_modules/
+dist/
+prisma-8.md
+src/generated/

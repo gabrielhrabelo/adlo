@@ -1,5 +1,7 @@
 import type { EventBus } from "../../../shared/application/EventBus.ts";
+import { Email } from "../../../shared/domain/Email.ts";
 import { EmailAlreadyInUseError } from "../domain/errors.ts";
+import type { Papel } from "../domain/Papel.ts";
 import { Password } from "../domain/Password.ts";
 import { User } from "../domain/User.ts";
 import type { UserRepository } from "../domain/UserRepository.ts";
@@ -15,27 +17,29 @@ export class RegisterUser {
   async execute(input: {
     nome: string
     email: string
-    password: string
+    senha: string
+    papel?: Papel
   }) {
-    const password = Password.create(input.password)
+    const email = Email.create(input.email)
+    const password = Password.create(input.senha)
 
-    if (await this.users.findByEmail(input.email)) {
+    if (await this.users.findByEmail(email.value)) {
       throw new EmailAlreadyInUseError()
     }
 
     const user = User.create({
       nome: input.nome,
-      email: input.email,
-      senhaHash: await this.hasher.hash(password.value)
+      email,
+      senhaHash: await this.hasher.hash(password.value),
+      ...(input.papel && { papel: input.papel })
     })
     await this.users.save(user)
     await this.events.publish(user.pullEvents())
     return {
       id: user.id,
       nome: user.nome,
-      email: user.email
+      email: user.email,
+      papel: user.papel
     }
   }
-
-
 }

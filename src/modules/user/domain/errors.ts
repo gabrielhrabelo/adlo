@@ -1,11 +1,5 @@
 import { DomainError } from "../../../shared/domain/DomainError.ts";
 
-export class InvalidEmailError extends DomainError {
-  constructor(value: string) {
-    super(`Email inválido: "${value}"`, `INVALID_EMAIL`, 'validation')
-  }
-}
-
 export class WeakPasswordError extends DomainError {
   constructor() {
     super(`A senha precisa ter 8+ caracteres, com letras e números`, `WEAK_PASSWORD`, 'validation')
@@ -29,3 +23,17 @@ export class UserNotFoundError extends DomainError {
     super('Usuário não encontrado', 'USER_NOT_FOUND', 'not_found')
   }
 }
+
+export class InvalidTokenError extends DomainError {
+  constructor() {
+    super('Token de acesso inválido ou expirado', 'INVALID_TOKEN', 'unauthorized')
+  }
+}
+
+export class ForbiddenError extends DomainError {
+  constructor() {
+    super('Você não tem permissão para esta operação', 'FORBIDDEN', 'forbidden')
+  }
+}
+
+export { InvalidEmailError } from "../../../shared/domain/Email.ts";

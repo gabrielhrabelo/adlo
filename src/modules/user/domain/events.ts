@@ -8,3 +8,21 @@ export class UserRegistered implements DomainEvent {
 
   }
 }
+
+export class UserUpdated implements DomainEvent {
+  readonly name = 'user.user-updated'
+  readonly occurredAt = new Date()
+
+  constructor(readonly userId: string) {
+
+  }
+}
+
+export class UserPasswordChanged implements DomainEvent {
+  readonly name = 'user.password-changed'
+  readonly occurredAt = new Date()
+
+  constructor(readonly userId: string) {
+
+  }
+}
