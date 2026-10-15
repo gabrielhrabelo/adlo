@@ -157,7 +157,7 @@ Consulte o código atual para verificar quais operações já estão implementad
 
 ## Contribuição
 
-O projeto está em desenvolvimento. Para propor melhorias, abra uma issue descrevendo o problema ou a funcionalidade desejada. Para mudanças maiores, discuta a proposta antes de iniciar a implementação.
+Contribuições não são aceitas no momento. Apenas para os integrantes do projeto.
 
 ## Licença
 
