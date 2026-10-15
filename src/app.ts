@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import { createClienteModule } from "./modules/cliente/index.ts";
+import { createProcessoModule } from "./modules/processo/index.ts";
 import { createUserModule } from "./modules/user/index.ts";
 import { db } from "./prisma/db.ts";
 import { InMemoryEventBus } from "./shared/infrastructure/InMemoryEventBus.ts";
@@ -12,6 +13,7 @@ export function buildApp() {
 
   const user = createUserModule({ db, events, jwtSecret: requireEnv('JWT_SECRET') })
   const cliente = createClienteModule({ db, events })
+  const processo = createProcessoModule({ db, events })
 
   app.setErrorHandler(errorHandler)
   app.register(user.routes)
@@ -22,6 +24,7 @@ export function buildApp() {
     protegido.addHook('onResponse', auditoria(db))
 
     protegido.register(cliente.routes)
+    protegido.register(processo.routes)
   })
 
   app.addHook('onClose', async () => { await db.$disconnect() })
