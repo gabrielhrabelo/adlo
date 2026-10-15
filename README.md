@@ -34,7 +34,9 @@ src/
 ├── modules/
 │   ├── agendamento/       # Agendamentos
 │   ├── atendimento/       # Atendimentos
+│   ├── board/             # Quadro kanban de processos
 │   ├── cliente/           # Gestão de clientes
+│   ├── documento/         # Documentos anexados aos clientes
 │   ├── processo/          # Processos jurídicos
 │   ├── relatorio/         # Relatórios
 │   └── user/              # Usuários e autenticação
@@ -80,8 +82,19 @@ Edite o arquivo `.env` e configure, no mínimo:
 - `POSTGRES_DATABASE`
 - `DATABASE_URL`
 - `JWT_SECRET`
+- `DOCUMENTOS_SECRET`
 
-Use um segredo JWT forte, com pelo menos 32 caracteres. Não compartilhe nem versione seu arquivo `.env`.
+Use segredos fortes, com pelo menos 32 caracteres. Não compartilhe nem versione seu arquivo `.env`.
+
+`DOCUMENTOS_SECRET` deriva a chave AES-256-GCM usada para cifrar os documentos anexados em disco. Se ele for trocado, os arquivos já enviados deixam de poder ser lidos.
+
+Variáveis opcionais:
+
+| Variável | Descrição |
+| --- | --- |
+| `DOCUMENTOS_DIR` | Diretório dos documentos anexados (padrão: `storage/documentos`) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | Envio dos alertas de prazos e audiências por e-mail. Sem `SMTP_HOST`, os alertas ficam apenas na plataforma e no log |
+| `ALERTAS_INTERVALO_MS` | Intervalo da varredura de alertas (padrão: `60000`) |
 
 Exemplo de formato para a conexão com o banco:
 
@@ -122,6 +135,14 @@ pnpm dev
 
 A porta padrão configurada no exemplo de ambiente é `3333`. Confira os logs do servidor para confirmar a inicialização.
 
+### 7. Crie o primeiro usuário e teste a API
+
+```bash
+pnpm user:create "Advogado" advogado@adlo.local Senha123
+```
+
+A pasta [`bruno/`](./bruno) contém uma coleção do [Bruno](https://www.usebruno.com/) com todas as rotas. Abra a pasta no Bruno, selecione o ambiente **Local** e execute **Auth > Login**; os ids criados nas requisições seguintes são salvos automaticamente nas variáveis de ambiente.
+
 ## Scripts disponíveis
 
 | Comando | Descrição |
@@ -139,12 +160,14 @@ A porta padrão configurada no exemplo de ambiente é `3333`. Confira os logs do
 
 A aplicação está sendo organizada para contemplar:
 
-- **Usuários e autenticação:** autenticação por token e proteção de rotas.
-- **Clientes:** cadastro e gerenciamento de clientes.
-- **Atendimentos:** histórico e organização dos atendimentos.
-- **Agendamentos:** organização de compromissos.
-- **Processos jurídicos:** registro e acompanhamento de processos.
-- **Relatórios:** apoio à consulta e análise de informações.
+- **Usuários e autenticação** (`/auth`, `/usuarios`): autenticação por token e proteção de rotas.
+- **Clientes** (`/clientes`): cadastro, busca, edição, inativação e reativação.
+- **Processos jurídicos** (`/processos`): cadastro, edição, status, arquivamento e exclusão.
+- **Atendimentos** (`/clientes/:clienteId/atendimentos`): histórico de atendimentos por cliente.
+- **Agendamentos** (`/agendamentos`): prazos, audiências e compromissos, com verificação de horário ocupado e alertas automáticos na plataforma e por e-mail.
+- **Documentos** (`/clientes/:clienteId/documentos`): anexos do cliente, cifrados em repouso.
+- **Board** (`/boards`): quadro kanban de processos; mover um card atualiza o status do processo.
+- **Relatórios** (`/relatorios`): relatórios de clientes, processos e audiências em PDF e indicadores do dashboard.
 
 Consulte o código atual para verificar quais operações já estão implementadas.
 
