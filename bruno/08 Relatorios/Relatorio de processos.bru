@@ -1,0 +1,19 @@
+meta {
+  name: Relatório de processos (PDF)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/relatorios/processos
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~status: EM_ANDAMENTO
+  ~area: INSS
+  ~clienteId: {{clienteId}}
+  ~abertoDe: 2026-01-01
+  ~abertoAte: 2026-12-31
+}

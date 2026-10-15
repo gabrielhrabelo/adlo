@@ -1,0 +1,21 @@
+meta {
+  name: Relatório de clientes (PDF)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/relatorios/clientes
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~ativo: true
+  ~area: INSS
+  ~usuarioId: {{usuarioId}}
+}
+
+docs {
+  RF15 - Gerar relatório de clientes em PDF.
+}

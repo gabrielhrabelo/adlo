@@ -6,6 +6,7 @@ import { createBoardModule } from "./modules/board/index.ts";
 import { createClienteModule } from "./modules/cliente/index.ts";
 import { createDocumentoModule } from "./modules/documento/index.ts";
 import { createProcessoModule } from "./modules/processo/index.ts";
+import { createRelatorioModule } from "./modules/relatorio/index.ts";
 import { createUserModule } from "./modules/user/index.ts";
 import { db } from "./prisma/db.ts";
 import { InMemoryEventBus } from "./shared/infrastructure/InMemoryEventBus.ts";
@@ -25,6 +26,7 @@ export function buildApp() {
     events,
     alterarStatusDoProcesso: (input) => processo.useCases.alterarStatus.execute(input),
   })
+  const relatorio = createRelatorioModule({ db })
   const documento = createDocumentoModule({
     db,
     events,
@@ -53,6 +55,7 @@ export function buildApp() {
     protegido.register(agendamento.routes)
     protegido.register(documento.routes)
     protegido.register(board.routes)
+    protegido.register(relatorio.routes)
   })
 
   app.addHook('onReady', async () => { agendamento.alertas.iniciar() })
