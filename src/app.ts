@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import { createAtendimentoModule } from "./modules/atendimento/index.ts";
 import { createClienteModule } from "./modules/cliente/index.ts";
 import { createProcessoModule } from "./modules/processo/index.ts";
 import { createUserModule } from "./modules/user/index.ts";
@@ -14,6 +15,7 @@ export function buildApp() {
   const user = createUserModule({ db, events, jwtSecret: requireEnv('JWT_SECRET') })
   const cliente = createClienteModule({ db, events })
   const processo = createProcessoModule({ db, events })
+  const atendimento = createAtendimentoModule({ db, events })
 
   app.setErrorHandler(errorHandler)
   app.register(user.routes)
@@ -25,6 +27,7 @@ export function buildApp() {
 
     protegido.register(cliente.routes)
     protegido.register(processo.routes)
+    protegido.register(atendimento.routes)
   })
 
   app.addHook('onClose', async () => { await db.$disconnect() })
