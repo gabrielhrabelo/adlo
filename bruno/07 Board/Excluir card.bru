@@ -1,0 +1,11 @@
+meta {
+  name: Excluir card
+  type: http
+  seq: 10
+}
+
+delete {
+  url: {{baseUrl}}/boards/{{boardId}}/cards/{{cardId}}
+  body: none
+  auth: inherit
+}

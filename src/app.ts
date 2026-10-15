@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import { createAgendamentoModule } from "./modules/agendamento/index.ts";
 import { EmailNotificador } from "./modules/agendamento/infrastructure/notificadores.ts";
 import { createAtendimentoModule } from "./modules/atendimento/index.ts";
+import { createBoardModule } from "./modules/board/index.ts";
 import { createClienteModule } from "./modules/cliente/index.ts";
 import { createDocumentoModule } from "./modules/documento/index.ts";
 import { createProcessoModule } from "./modules/processo/index.ts";
@@ -19,6 +20,11 @@ export function buildApp() {
   const cliente = createClienteModule({ db, events })
   const processo = createProcessoModule({ db, events })
   const atendimento = createAtendimentoModule({ db, events })
+  const board = createBoardModule({
+    db,
+    events,
+    alterarStatusDoProcesso: (input) => processo.useCases.alterarStatus.execute(input),
+  })
   const documento = createDocumentoModule({
     db,
     events,
@@ -46,6 +52,7 @@ export function buildApp() {
     protegido.register(atendimento.routes)
     protegido.register(agendamento.routes)
     protegido.register(documento.routes)
+    protegido.register(board.routes)
   })
 
   app.addHook('onReady', async () => { agendamento.alertas.iniciar() })

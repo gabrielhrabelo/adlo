@@ -224,6 +224,7 @@ model Board {
   usuarioId String
   nome      String
   criadoEm  DateTime @default(now()) @db.Timestamptz(3)
+  versao    Int      @default(1)
   usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   colunas   Coluna[]
 

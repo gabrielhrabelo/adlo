@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Board" ADD COLUMN     "versao" INTEGER NOT NULL DEFAULT 1;

@@ -1,0 +1,22 @@
+meta {
+  name: Mover card
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/boards/{{boardId}}/cards/{{cardId}}/mover
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "colunaId": "{{colunaId}}",
+    "posicao": 0
+  }
+}
+
+docs {
+  RF17 - Mover o card para uma coluna vinculada a um status atualiza o status do processo.
+}
