@@ -1,4 +1,6 @@
 import Fastify from "fastify";
+import { createAgendamentoModule } from "./modules/agendamento/index.ts";
+import { EmailNotificador } from "./modules/agendamento/infrastructure/notificadores.ts";
 import { createAtendimentoModule } from "./modules/atendimento/index.ts";
 import { createClienteModule } from "./modules/cliente/index.ts";
 import { createProcessoModule } from "./modules/processo/index.ts";
@@ -16,6 +18,13 @@ export function buildApp() {
   const cliente = createClienteModule({ db, events })
   const processo = createProcessoModule({ db, events })
   const atendimento = createAtendimentoModule({ db, events })
+  const agendamento = createAgendamentoModule({
+    db,
+    events,
+    logger: app.log,
+    ...(process.env['ALERTAS_INTERVALO_MS'] && { intervaloDosAlertasMs: Number(process.env['ALERTAS_INTERVALO_MS']) }),
+    ...(process.env['SMTP_HOST'] && { notificador: criarNotificadorDeEmail(process.env['SMTP_HOST']) }),
+  })
 
   app.setErrorHandler(errorHandler)
   app.register(user.routes)
@@ -28,11 +37,29 @@ export function buildApp() {
     protegido.register(cliente.routes)
     protegido.register(processo.routes)
     protegido.register(atendimento.routes)
+    protegido.register(agendamento.routes)
   })
 
+  app.addHook('onReady', async () => { agendamento.alertas.iniciar() })
+  app.addHook('onClose', async () => { await agendamento.alertas.parar() })
   app.addHook('onClose', async () => { await db.$disconnect() })
 
   return app
+}
+
+function criarNotificadorDeEmail(host: string): EmailNotificador {
+  const port = Number(process.env['SMTP_PORT'] ?? 587)
+  const user = process.env['SMTP_USER']
+  const pass = process.env['SMTP_PASS']
+
+  return new EmailNotificador({
+    host,
+    port,
+    secure: port === 465,
+    from: process.env['SMTP_FROM'] ?? user ?? 'adlo@localhost',
+    ...(user && { user }),
+    ...(pass && { pass }),
+  })
 }
 
 function requireEnv(name: string): string {
