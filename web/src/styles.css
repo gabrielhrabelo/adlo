@@ -48,11 +48,21 @@ body,.app-shell,.login-screen,.loading-screen,.main-area,.page-content{backgroun
 
 .sidebar-collapsed .workspace{display:none}
 
-/* Moving technical line accents on the login screen */
+/* Independent horizontal and vertical motion accents on login */
 .login-screen{position:relative;isolation:isolate;overflow:hidden;background:#fff!important}
-.login-screen::before,.login-screen::after{content:"";position:absolute;top:0;left:0;height:100%;pointer-events:none;z-index:0;mask-image:linear-gradient(to right,transparent,black 18%,black 82%,transparent);background-repeat:repeat-y;will-change:transform}
-.login-screen::before{width:clamp(200px,24vw,320px);background-image:repeating-linear-gradient(to bottom,transparent 0 149px,rgba(17,17,17,.09) 149px 150px,transparent 150px 152px);animation:login-lines-pass 17s linear infinite}
-.login-screen::after{width:clamp(150px,17vw,230px);background-image:repeating-linear-gradient(to bottom,transparent 0 209px,rgba(17,17,17,.055) 209px 210px,transparent 210px 212px);animation:login-lines-pass 23s linear -9s infinite}
+.login-ambient-lines{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.login-line{position:absolute;display:block;background:rgba(17,17,17,.075);opacity:.8;will-change:transform}
+.login-line.horizontal{left:0;height:1px;width:clamp(100px,18vw,260px)}
+.login-line.vertical{top:0;width:1px;height:clamp(110px,20vh,230px)}
+.line-one{top:17%;animation:login-line-x 29s linear -7s infinite}
+.line-two{top:36%;width:clamp(140px,25vw,340px)!important;animation:login-line-x 37s linear -21s infinite reverse}
+.line-three{top:68%;animation:login-line-x 32s linear -13s infinite}
+.line-four{top:84%;width:clamp(120px,22vw,300px)!important;animation:login-line-x 43s linear -31s infinite reverse}
+.line-five{left:14%;animation:login-line-y 34s linear -18s infinite}
+.line-six{left:39%;height:clamp(150px,25vh,290px)!important;animation:login-line-y 46s linear -9s infinite reverse}
+.line-seven{left:67%;animation:login-line-y 39s linear -27s infinite}
+.line-eight{left:88%;height:clamp(130px,23vh,260px)!important;animation:login-line-y 51s linear -36s infinite reverse}
 .login-card{position:relative;z-index:1}
-@keyframes login-lines-pass{from{transform:translateX(-100%)}to{transform:translateX(calc(100vw + 100%))}}
-@media(prefers-reduced-motion:reduce){.login-screen::before,.login-screen::after{animation:none;display:none}}
+@keyframes login-line-x{from{transform:translateX(-100%)}to{transform:translateX(calc(100vw + 100%))}}
+@keyframes login-line-y{from{transform:translateY(-100%)}to{transform:translateY(calc(100vh + 100%))}}
+@media(prefers-reduced-motion:reduce){.login-ambient-lines{display:none}}
