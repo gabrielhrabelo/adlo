@@ -3,6 +3,17 @@ services:
     name: adlo-api
     runtime: node
     plan: free
+    buildFilter:
+      paths:
+        - src/**
+        - prisma/**
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - prisma.config.ts
+        - tsconfig.json
+        - .npmrc
+        - .node-version
     buildCommand: pnpm install --prod=false --no-frozen-lockfile && pnpm db:generate
     startCommand: pnpm exec prisma migrate deploy && pnpm start
     envVars:
