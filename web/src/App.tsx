@@ -27,6 +27,8 @@ function App() {
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
   const [pageError, setPageError] = useState('')
+  const [formError, setFormError] = useState('')
+  const [processNumberError, setProcessNumberError] = useState('')
   const [query, setQuery] = useState('')
   const [areaFilter, setAreaFilter] = useState<'TODAS' | 'INSS' | 'DPVAT'>('TODAS')
   const [modal, setModal] = useState<'process' | 'client' | null>(null)
@@ -173,9 +175,31 @@ function App() {
 
   const submitProcess = async (event: FormEvent) => {
     event.preventDefault()
-    if (!token || !clientId || !processTitle.trim()) return
-    setSaving(true)
     setPageError('')
+    setFormError('')
+    setProcessNumberError('')
+    if (!token) return
+    if (processTitle.trim().length < 3 || processTitle.trim().length > 200) {
+      setFormError('O título precisa ter entre 3 e 200 caracteres.')
+      return
+    }
+    if (!clientId) {
+      setFormError('Selecione um cliente para o processo.')
+      return
+    }
+    if (!isValidNumeroProcesso(processNumber)) {
+      setProcessNumberError('Número de processo inválido. Use o padrão CNJ NNNNNNN-DD.AAAA.J.TR.OOOO.')
+      return
+    }
+    if (!processDate) {
+      setFormError('Informe a data de abertura do processo.')
+      return
+    }
+    if (processDate > new Date().toISOString().slice(0, 10)) {
+      setFormError('A data de abertura não pode estar no futuro.')
+      return
+    }
+    setSaving(true)
     try {
       const created = await api.createProcess(token, { clienteId: clientId, titulo: processTitle.trim(), area, numeroProcesso: processNumber.trim() || null, dataAbertura: processDate })
       let boardWarning = ''
@@ -189,23 +213,50 @@ function App() {
       setProcessTitle('')
       setClientId('')
       setProcessNumber('')
+      setProcessNumberError('')
+      setFormError('')
       setNotice(boardWarning || (board ? 'Processo cadastrado e adicionado ao quadro' : 'Processo cadastrado com sucesso'))
-    } catch (error) { if (error instanceof ApiError && error.status === 401) handleApiError(error); else setPageError(errorMessage(error)) }
-    finally { setSaving(false) }
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) handleApiError(error)
+      else {
+        const message = errorMessage(error)
+        if (/n[uú]mero.*processo|CNJ/i.test(message)) setProcessNumberError(message)
+        else setFormError(message)
+      }
+    } finally { setSaving(false) }
   }
 
   const submitClient = async (event: FormEvent) => {
     event.preventDefault()
-    if (!token || !clientName.trim()) return
-    setSaving(true)
     setPageError('')
+    setFormError('')
+    if (!token) return
+    const name = clientName.trim()
+    const emailValue = clientEmail.trim()
+    const phone = clientPhone.trim()
+    const phoneDigits = phone.replace(/\\D/g, '')
+    if (name.length < 2 || name.length > 160) {
+      setFormError('O nome precisa ter entre 2 e 160 caracteres.')
+      return
+    }
+    if (emailValue && (emailValue.length > 254 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(emailValue))) {
+      setFormError('Informe um e-mail válido.')
+      return
+    }
+    if (phone && phoneDigits.length !== 10 && phoneDigits.length !== 11) {
+      setFormError('Informe um telefone com DDD e 10 ou 11 dígitos.')
+      return
+    }
+    setSaving(true)
     try {
-      const created = await api.createClient(token, { nome: clientName.trim(), email: clientEmail.trim() || null, telefones: clientPhone.trim() ? [{ numero: clientPhone.trim() }] : [] })
+      const created = await api.createClient(token, { nome: name, email: emailValue || null, telefones: phone ? [{ numero: phone }] : [] })
       setClients(current => [...current, created].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')))
-      setClientName(''); setClientEmail(''); setClientPhone(''); setModal(null)
+      setClientName(''); setClientEmail(''); setClientPhone(''); setFormError(''); setModal(null)
       setNotice('Cliente cadastrado com sucesso')
-    } catch (error) { handleApiError(error) }
-    finally { setSaving(false) }
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) handleApiError(error)
+      else setFormError(errorMessage(error))
+    } finally { setSaving(false) }
   }
 
   if (!token) return <LoginScreen email={email} password={password} loading={loginLoading} error={loginError} setEmail={setEmail} setPassword={setPassword} onSubmit={submitLogin} />
@@ -239,7 +290,7 @@ function App() {
         </> : <>
         <div className="page-heading"><div><h1>{board?.nome ?? 'Processos'}</h1><p className="subtitle">Acompanhe os processos cadastrados no ADLO.</p></div>{boards.length > 1 && <label className="board-picker"><span>Quadro</span><select aria-label="Selecionar quadro" value={boardId} onChange={event => setBoardId(event.target.value)}>{boards.map(item => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></label>}{board && <button className="primary-button" onClick={() => {setProcessTitle('');setProcessNumber('');setClientId(availableClients[0]?.id ?? '');setModal('process')}} disabled={saving}><Plus size={17} strokeWidth={2.3}/> Novo processo</button>}</div>
         {pageError && <div className="page-error" role="alert"><span>{pageError}</span><button className="secondary-button" onClick={refresh}>Tentar novamente</button></div>}
-        {!pageError && board && <div className="summary-row"><SummaryCard icon={<BriefcaseBusiness size={17}/>} tone="total-icon" label="Processos neste quadro" value={String(allCards.length).padStart(2, '0')} detail={`${board.colunas.length} etapas`}/><SummaryCard icon={<Clock3 size={17}/>} tone="deadline-icon" label="Agendamentos nos próximos 7 dias" value={String(upcomingAppointments).padStart(2, '0')} detail="no quadro"/><SummaryCard icon={<Check size={17}/>} tone="done-icon" label="Na etapa concluído" value={String(completedCount).padStart(2, '0')} detail="neste quadro"/></div>}
+        {!pageError && board && <div className="summary-row"><SummaryCard tone="total-icon" label="Processos neste quadro" value={String(allCards.length).padStart(2, '0')} detail={`${board.colunas.length} etapas`}/><SummaryCard tone="deadline-icon" label="Agendamentos nos próximos 7 dias" value={String(upcomingAppointments).padStart(2, '0')} detail="no quadro"/><SummaryCard tone="done-icon" label="Na etapa concluído" value={String(completedCount).padStart(2, '0')} detail="neste quadro"/></div>}
         {!pageError && boards.length>0 && <section className="board-section" aria-label="Quadro de processos"><div className="board-toolbar"><div className="board-heading"><span className="board-live-dot"/>Dados atualizados do escritório<span className="board-card-total">{allCards.length} processos</span></div><div className="toolbar-actions"><label className="search-box"><Search size={16}/><input ref={searchRef} aria-label="Buscar processos" placeholder="Buscar processo ou cliente..." value={query} onChange={event => setQuery(event.target.value)}/><kbd>Ctrl K</kbd></label><label className="area-select"><SlidersHorizontal size={15}/><select aria-label="Filtrar por área" value={areaFilter} onChange={event => setAreaFilter(event.target.value as typeof areaFilter)}><option value="TODAS">Todas as áreas</option><option value="INSS">INSS</option><option value="DPVAT">DPVAT</option></select></label><button className="icon-button sort-button" aria-label="Atualizar quadro" onClick={refresh}><RefreshCw size={17}/></button></div></div>
           {boardLoading ? <div className="board-loading"><LoaderCircle size={21} className="spin"/><span>Carregando processos...</span></div> : !board ? <div className="board-loading"><LoaderCircle size={21} className="spin"/><span>Carregando quadro...</span></div> : <><div className="board-scroll"><div className="board-grid" style={{gridTemplateColumns:`repeat(${Math.max(filteredColumns.length,1)}, 238px)`}}>{filteredColumns.map((column, index) => <section className="kanban-column" key={column.id} aria-label={`${column.nome}, ${column.cards.length} processos`} onDragOver={event => event.preventDefault()} onDrop={event => {event.preventDefault();if(dragging)void moveCard(dragging,column.id)}}><header className="column-header"><div className="column-title"><i style={{background:columnColors[index % columnColors.length]}}/><h2>{column.nome}</h2><span className="column-count">{column.cards.length}</span></div><button className="column-menu" aria-label={`Opções da coluna ${column.nome}`} onClick={() => setNotice(`${column.cards.length} processos nesta etapa`)}><MoreHorizontal size={18}/></button></header><div className="column-cards">{column.cards.map(card => { const appointment=card.processo.proximoAgendamento; const days=appointment ? daysUntil(appointment.dataHora) : null; return <article className={`process-card ${dragging===card.id?'is-dragging':''} ${busyCard===card.id?'is-busy':''}`} key={card.id} draggable={!busyCard} onDragStart={event=>{setDragging(card.id);event.dataTransfer.setData('text/plain',card.id)}} onDragEnd={()=>setDragging(null)}><div className="card-top"><span className="area-tag">{card.processo.area}</span><button className="card-menu" aria-label={`Detalhes do processo de ${card.processo.cliente.nome}`} onClick={()=>setNotice(card.processo.numeroProcesso ? `Processo ${card.processo.numeroProcesso}` : card.processo.titulo)}><MoreHorizontal size={17}/></button></div><h3>{card.titulo || card.processo.titulo}</h3><div className="client-row"><div className={`avatar avatar-tone-${index % 6}`}>{initials(card.processo.cliente.nome)}</div><span>{card.processo.cliente.nome}</span></div><div className="process-number"><FileText size={13}/><span>{card.processo.numeroProcesso || 'Número não informado'}</span></div>{appointment && <div className={`due-chip ${days !== null && days <= 1 ? 'soon' : ''}`}><Clock3 size={12}/><span>{appointment.titulo || appointment.tipo} · {appointmentLabel(appointment.dataHora)}</span></div>}<footer className="card-footer"><div className="owner"><span className="status-caption">{column.nome}</span></div><button className="move-card" disabled={busyCard===card.id || index===filteredColumns.length-1} title="Mover para próxima etapa" aria-label={`Mover ${card.processo.cliente.nome} para próxima etapa`} onClick={()=>{const next=filteredColumns[index+1];if(next)void moveCard(card.id,next.id)}}>{busyCard===card.id?<LoaderCircle className="spin" size={15}/>:<ChevronRight size={15}/>}</button></footer></article>})}{column.cards.length===0 && <div className="column-empty">{query || areaFilter!=='TODAS' ? 'Nenhum resultado' : 'Nenhum processo nesta etapa'}</div>}</div></section>)}</div></div><div className="board-footer"><span>Exibindo <strong>{filteredColumns.reduce((count,column)=>count+column.cards.length,0)}</strong> de {allCards.length} processos</span><button className="refresh-link" onClick={refresh}><RefreshCw size={13}/> Atualizar dados</button></div></>}
         </section>}
@@ -248,17 +299,26 @@ function App() {
       </>}
       </section>
     </main>
-    {modal === 'process' && <div className="modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!saving)setModal(null)}}><form className="process-modal" onSubmit={submitProcess} aria-labelledby="modal-title"><header><div><span className="modal-kicker">CADASTRO NO ADLO</span><h2 id="modal-title">Novo processo</h2><p>{board?'O processo será salvo e vinculado ao quadro.':'Preencha os dados principais do processo.'}</p></div><button type="button" className="icon-button" aria-label="Fechar" onClick={()=>setModal(null)} disabled={saving}><X size={18}/></button></header><label>Nome do processo<input autoFocus value={processTitle} onChange={event=>setProcessTitle(event.target.value)} placeholder="Ex.: Revisão de benefício" maxLength={200} required/></label><label>Número do processo<input value={processNumber} onChange={event=>setProcessNumber(event.target.value)} placeholder="Opcional" maxLength={25}/></label><label>Cliente<select value={clientId} onChange={event=>setClientId(event.target.value)} required disabled={!availableClients.length}><option value="" disabled>Selecione um cliente</option>{availableClients.map(client=><option key={client.id} value={client.id}>{client.nome}</option>)}</select></label><label>Área<select value={area} onChange={event=>setArea(event.target.value as typeof area)}><option value="INSS">INSS</option><option value="DPVAT">DPVAT</option></select></label><label>Data de abertura<input type="date" value={processDate} onChange={event=>setProcessDate(event.target.value)} required/></label>{!availableClients.length&&<div className="inline-error">Cadastre um cliente ativo antes de criar o processo.</div>}<footer><button type="button" className="secondary-button" onClick={()=>setModal(null)} disabled={saving}>Cancelar</button><button className="primary-button" type="submit" disabled={saving||!availableClients.length}>{saving?<LoaderCircle size={16} className="spin"/>:<Plus size={16}/>} Criar processo</button></footer></form></div>}
-    {modal === 'client' && <div className="modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!saving)setModal(null)}}><form className="process-modal" onSubmit={submitClient} aria-labelledby="client-modal-title"><header><div><span className="modal-kicker">CADASTRO NO ADLO</span><h2 id="client-modal-title">Novo cliente</h2><p>Os campos opcionais podem ser preenchidos depois.</p></div><button type="button" className="icon-button" aria-label="Fechar" onClick={()=>setModal(null)} disabled={saving}><X size={18}/></button></header><label>Nome completo<input autoFocus value={clientName} onChange={event=>setClientName(event.target.value)} placeholder="Nome do cliente" maxLength={160} minLength={2} required/></label><label>E-mail<input type="email" value={clientEmail} onChange={event=>setClientEmail(event.target.value)} placeholder="cliente@email.com" maxLength={254}/></label><label>Telefone<input type="tel" value={clientPhone} onChange={event=>setClientPhone(event.target.value)} placeholder="(11) 99999-9999" minLength={clientPhone?8:undefined}/></label><footer><button type="button" className="secondary-button" onClick={()=>setModal(null)} disabled={saving}>Cancelar</button><button className="primary-button" type="submit" disabled={saving||clientName.trim().length<2}>{saving?<LoaderCircle size={16} className="spin"/>:<Plus size={16}/>} Cadastrar cliente</button></footer></form></div>}    {notice && <div className="toast" role="status"><Check size={16}/>{notice}<button aria-label="Fechar aviso" onClick={()=>setNotice('')}><X size={15}/></button></div>}
+    {modal === 'process' && <div className="modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!saving)setModal(null)}}><form className="process-modal" noValidate onSubmit={submitProcess} aria-labelledby="modal-title"><header><div><span className="modal-kicker">CADASTRO NO ADLO</span><h2 id="modal-title">Novo processo</h2><p>{board?'O processo será salvo e vinculado ao quadro.':'Preencha os dados principais do processo.'}</p></div><button type="button" className="icon-button" aria-label="Fechar" onClick={()=>setModal(null)} disabled={saving}><X size={18}/></button></header><label>Nome do processo<input autoFocus value={processTitle} onChange={event=>setProcessTitle(event.target.value)} placeholder="Ex.: Revisão de benefício" maxLength={200} required/></label><label>Número do processo<input aria-invalid={Boolean(processNumberError)} aria-describedby={processNumberError?'process-number-error':undefined} value={processNumber} onChange={event=>{setProcessNumber(event.target.value);setProcessNumberError('')}} placeholder="Opcional" maxLength={25}/>{processNumberError&&<span className="inline-error field-error" id="process-number-error" role="alert">{processNumberError}</span>}</label><label>Cliente<select value={clientId} onChange={event=>setClientId(event.target.value)} required disabled={!availableClients.length}><option value="" disabled>Selecione um cliente</option>{availableClients.map(client=><option key={client.id} value={client.id}>{client.nome}</option>)}</select></label><label>Área<select value={area} onChange={event=>setArea(event.target.value as typeof area)}><option value="INSS">INSS</option><option value="DPVAT">DPVAT</option></select></label><label>Data de abertura<input type="date" value={processDate} onChange={event=>setProcessDate(event.target.value)} required/></label>{!availableClients.length&&<div className="inline-error" role="alert">Cadastre um cliente ativo antes de criar o processo.</div>}{formError&&<div className="inline-error" role="alert">{formError}</div>}<footer><button type="button" className="secondary-button" onClick={()=>setModal(null)} disabled={saving}>Cancelar</button><button className="primary-button" type="submit" disabled={saving||!availableClients.length}>{saving?<LoaderCircle size={16} className="spin"/>:<Plus size={16}/>} Criar processo</button></footer></form></div>}
+    {modal === 'client' && <div className="modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!saving)setModal(null)}}><form className="process-modal" noValidate onSubmit={submitClient} aria-labelledby="client-modal-title"><header><div><span className="modal-kicker">CADASTRO NO ADLO</span><h2 id="client-modal-title">Novo cliente</h2><p>Os campos opcionais podem ser preenchidos depois.</p></div><button type="button" className="icon-button" aria-label="Fechar" onClick={()=>setModal(null)} disabled={saving}><X size={18}/></button></header><label>Nome completo<input autoFocus value={clientName} onChange={event=>setClientName(event.target.value)} placeholder="Nome do cliente" maxLength={160} minLength={2} required/></label><label>E-mail<input type="email" value={clientEmail} onChange={event=>setClientEmail(event.target.value)} placeholder="cliente@email.com" maxLength={254}/></label><label>Telefone<input type="tel" value={clientPhone} onChange={event=>setClientPhone(event.target.value)} placeholder="(11) 99999-9999"/></label>{formError&&<div className="inline-error" role="alert">{formError}</div>}<footer><button type="button" className="secondary-button" onClick={()=>setModal(null)} disabled={saving}>Cancelar</button><button className="primary-button" type="submit" disabled={saving||clientName.trim().length<2}>{saving?<LoaderCircle size={16} className="spin"/>:<Plus size={16}/>} Cadastrar cliente</button></footer></form></div>}    {notice && <div className="toast" role="status"><Check size={16}/>{notice}<button aria-label="Fechar aviso" onClick={()=>setNotice('')}><X size={15}/></button></div>}
   </div>
+}
+
+function isValidNumeroProcesso(value: string) {
+  const digits = value.replace(/\\D/g, '')
+  if (!digits) return true
+  if (digits.length !== 20) return false
+  const digitoInformado = digits.slice(7, 9)
+  const resto = BigInt(`${digits.slice(0, 7)}${digits.slice(9)}00`) % 97n
+  return String(98n - resto).padStart(2, '0') === digitoInformado
 }
 
 function LoginScreen({ email, password, loading, error, setEmail, setPassword, onSubmit }: { email: string; password: string; loading: boolean; error: string; setEmail: (value:string)=>void; setPassword: (value:string)=>void; onSubmit: (event:FormEvent)=>void }) {
   return <main className="login-screen"><div className="login-ambient-lines" aria-hidden="true"><i className="login-line horizontal line-one"/><i className="login-line horizontal line-two"/><i className="login-line horizontal line-three"/><i className="login-line horizontal line-four"/><i className="login-line vertical line-five"/><i className="login-line vertical line-six"/><i className="login-line vertical line-seven"/><i className="login-line vertical line-eight"/></div><section className="login-card"><a className="brand login-brand" href="#login"><span>adlo<span className="brand-dot">.</span></span></a><div className="login-eyebrow">GESTÃO JURÍDICA</div><h1>Acesse seu escritório</h1><form onSubmit={onSubmit}><label>E-mail<input type="email" autoComplete="username" value={email} onChange={event=>setEmail(event.target.value)} placeholder="voce@escritorio.com.br" required/></label><label>Senha<input type="password" autoComplete="current-password" value={password} onChange={event=>setPassword(event.target.value)} placeholder="Sua senha" required/></label>{error&&<div className="inline-error" role="alert">{error}</div>}<button className="primary-button login-submit" type="submit" disabled={loading}>{loading?<LoaderCircle size={17} className="spin"/>:'Entrar'}</button></form></section></main>
 }
 
-function SummaryCard({icon,tone,label,value,detail}:{icon:ReactNode;tone:string;label:string;value:string;detail:string}) {
-  return <div className="summary-card"><div className={`summary-icon ${tone}`}>{icon}</div><div><span>{label}</span><strong>{value} <small>{detail}</small></strong></div></div>
+function SummaryCard({label,value,detail}:{label:string;value:string;detail:string}) {
+  return <div className="summary-card"><div><span>{label}</span><strong>{value} <small>{detail}</small></strong></div></div>
 }
 
 function initials(name: string) {
