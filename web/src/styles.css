@@ -48,7 +48,11 @@ body,.app-shell,.login-screen,.loading-screen,.main-area,.page-content{backgroun
 
 .sidebar-collapsed .workspace{display:none}
 
-
-/* Subtle technical grid on the login screen */
-.login-screen{position:relative;isolation:isolate;overflow:hidden;background-color:#fff!important;background-image:linear-gradient(to right,rgba(17,17,17,.16) 1px,transparent 1px),linear-gradient(to bottom,rgba(17,17,17,.16) 1px,transparent 1px)!important;background-size:64px 64px;background-position:center center}
-.login-card{position:relative;z-index:0}
+/* Moving technical line accents on the login screen */
+.login-screen{position:relative;isolation:isolate;overflow:hidden;background:#fff!important}
+.login-screen::before,.login-screen::after{content:"";position:absolute;top:0;left:0;height:100%;pointer-events:none;z-index:0;mask-image:linear-gradient(to right,transparent,black 18%,black 82%,transparent);background-repeat:repeat-y;will-change:transform}
+.login-screen::before{width:clamp(200px,24vw,320px);background-image:repeating-linear-gradient(to bottom,transparent 0 149px,rgba(17,17,17,.09) 149px 150px,transparent 150px 152px);animation:login-lines-pass 17s linear infinite}
+.login-screen::after{width:clamp(150px,17vw,230px);background-image:repeating-linear-gradient(to bottom,transparent 0 209px,rgba(17,17,17,.055) 209px 210px,transparent 210px 212px);animation:login-lines-pass 23s linear -9s infinite}
+.login-card{position:relative;z-index:1}
+@keyframes login-lines-pass{from{transform:translateX(-100%)}to{transform:translateX(calc(100vw + 100%))}}
+@media(prefers-reduced-motion:reduce){.login-screen::before,.login-screen::after{animation:none;display:none}}
