@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: adlo-api
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --prod=false --frozen-lockfile && pnpm db:generate
+    startCommand: pnpm exec prisma migrate deploy && pnpm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://adlo-kanban.vercel.app
