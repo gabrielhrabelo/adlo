@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import cors from "@fastify/cors";
 import { createAgendamentoModule } from "./modules/agendamento/index.ts";
 import { EmailNotificador } from "./modules/agendamento/infrastructure/notificadores.ts";
 import { createAtendimentoModule } from "./modules/atendimento/index.ts";
@@ -15,6 +16,16 @@ import { errorHandler } from "./shared/infrastructure/http/errorHandler.ts";
 
 export function buildApp() {
   const app = Fastify({ logger: true })
+  const corsOrigins = (process.env['CORS_ORIGINS'] ?? 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173')
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean)
+
+  app.register(cors, {
+    origin: corsOrigins,
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
+  })
   const events = new InMemoryEventBus()
 
   const jwtSecret = requireEnv('JWT_SECRET')
@@ -96,3 +107,4 @@ function requireEnv(name: string): string {
   if (!value) throw new Error(`Variável de ambiente ${name} não definida`)
   return value
 }
+

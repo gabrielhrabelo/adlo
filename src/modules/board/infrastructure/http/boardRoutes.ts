@@ -53,11 +53,8 @@ export function boardRoutes(useCases: BoardUseCases) {
     })
 
     // Consultar boards
-    app.get<{ Querystring: { usuarioId?: string } }>('/boards', {
-      schema: {
-        querystring: { type: 'object', additionalProperties: false, properties: { usuarioId: { type: 'string' } } }
-      }
-    }, async (request) => useCases.consultarBoard.listar(request.query))
+    app.get('/boards', async (request) =>
+      useCases.consultarBoard.listar({ usuarioId: request.userId }))
 
     // RF16 - Visualizar quadro kanban de processos
     app.get<{ Params: { id: string } }>('/boards/:id', { schema: { params: params('id') } },
@@ -160,3 +157,4 @@ export function boardRoutes(useCases: BoardUseCases) {
     }, async (request) => useCases.manterCards.excluir({ boardId: request.params.id, cardId: request.params.cardId }))
   }
 }
+
