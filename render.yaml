@@ -24,4 +24,4 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ORIGINS
-        value: https://adlomcs.vercel.app
+        value: "https://adlomcs.vercel.app,https://adlo.vercel.app"
