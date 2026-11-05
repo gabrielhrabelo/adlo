@@ -43,14 +43,12 @@ body,.app-shell,.login-screen,.loading-screen,.main-area,.page-content{backgroun
 .sidebar-collapsed .side-nav .nav-item{justify-content:center;padding:0}
 .sidebar-collapsed .sidebar-header .sidebar-toggle{margin:0}
 .top-actions{margin-left:auto}
-.login-screen,.loading-screen{background:#fff!important}
+.loading-screen{background:#fff!important}
 @media(max-width:760px){.mobile-menu-floating{position:fixed;top:12px;left:12px;z-index:7;background:#fff;border:1px solid #eee}.page-content{padding-top:64px}}
 
 .sidebar-collapsed .workspace{display:none}
 
 
 /* Subtle technical grid on the login screen */
-.login-screen{position:relative;isolation:isolate;overflow:hidden;background-color:#fff;background-image:linear-gradient(to right,rgba(17,17,17,.13) 1px,transparent 1px),linear-gradient(to bottom,rgba(17,17,17,.13) 1px,transparent 1px);background-size:64px 64px;background-position:center center}
-.login-screen::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at center,rgba(255,255,255,.82) 0%,rgba(255,255,255,.68) 35%,rgba(255,255,255,.3) 100%)}
+.login-screen{position:relative;isolation:isolate;overflow:hidden;background-color:#fff!important;background-image:linear-gradient(to right,rgba(17,17,17,.16) 1px,transparent 1px),linear-gradient(to bottom,rgba(17,17,17,.16) 1px,transparent 1px)!important;background-size:64px 64px;background-position:center center}
 .login-card{position:relative;z-index:0}
-@media(prefers-reduced-transparency:reduce){.login-screen::before{background:rgba(255,255,255,.82)}}
