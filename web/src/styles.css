@@ -25,7 +25,7 @@ body,.app-shell,.main-area,.page-content{background:#ffffff;color:#151515}
 .login-screen,.loading-screen{background:#ffffff}.login-eyebrow{color:#555555}.profile{min-width:0}.profile-copy{overflow:hidden}.profile-copy strong,.profile-copy span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.toast{background:#222222}.toast>svg{color:#dddddd}.toast button{color:#eeeeee}.empty-board-icon{background:#f2f2f2;color:#222222}.login-card{border-color:#e5e5e5}.login-card input:focus,.process-modal input:focus,.process-modal select:focus{border-color:#444444;box-shadow:0 0 0 3px #11111112}
 
 /* Monochrome navigation and compact sidebar controls */
-html{filter:grayscale(1);background:#ffffff}
+html{background:#ffffff}
 body,.app-shell,.login-screen,.loading-screen,.main-area,.page-content{background:#ffffff}
 .sidebar-header{width:100%;display:flex;align-items:center;justify-content:space-between;min-height:38px;margin-bottom:27px;gap:10px}
 .sidebar-header .brand{margin:0 0 0 6px}
