@@ -29,6 +29,12 @@ function App() {
   const [pageError, setPageError] = useState('')
   const [formError, setFormError] = useState('')
   const [processNumberError, setProcessNumberError] = useState('')
+  const [processTitleError, setProcessTitleError] = useState('')
+  const [processClientError, setProcessClientError] = useState('')
+  const [processDateError, setProcessDateError] = useState('')
+  const [clientNameError, setClientNameError] = useState('')
+  const [clientEmailError, setClientEmailError] = useState('')
+  const [clientPhoneError, setClientPhoneError] = useState('')
   const [query, setQuery] = useState('')
   const [areaFilter, setAreaFilter] = useState<'TODAS' | 'INSS' | 'DPVAT'>('TODAS')
   const [modal, setModal] = useState<'process' | 'client' | null>(null)
@@ -178,13 +184,16 @@ function App() {
     setPageError('')
     setFormError('')
     setProcessNumberError('')
+    setProcessTitleError('')
+    setProcessClientError('')
+    setProcessDateError('')
     if (!token) return
     if (processTitle.trim().length < 3 || processTitle.trim().length > 200) {
-      setFormError('O título precisa ter entre 3 e 200 caracteres.')
+      setProcessTitleError('O título precisa ter entre 3 e 200 caracteres.')
       return
     }
     if (!clientId) {
-      setFormError('Selecione um cliente para o processo.')
+      setProcessClientError('Selecione um cliente para o processo.')
       return
     }
     if (!isValidNumeroProcesso(processNumber)) {
@@ -192,11 +201,11 @@ function App() {
       return
     }
     if (!processDate) {
-      setFormError('Informe a data de abertura do processo.')
+      setProcessDateError('Informe a data de abertura do processo.')
       return
     }
     if (processDate > new Date().toISOString().slice(0, 10)) {
-      setFormError('A data de abertura não pode estar no futuro.')
+      setProcessDateError('A data de abertura não pode estar no futuro.')
       return
     }
     setSaving(true)
@@ -221,6 +230,9 @@ function App() {
       else {
         const message = errorMessage(error)
         if (/n[uú]mero.*processo|CNJ/i.test(message)) setProcessNumberError(message)
+        else if (/t[ií]tulo/i.test(message)) setProcessTitleError(message)
+        else if (/cliente/i.test(message)) setProcessClientError(message)
+        else if (/data de abertura/i.test(message)) setProcessDateError(message)
         else setFormError(message)
       }
     } finally { setSaving(false) }
@@ -230,21 +242,24 @@ function App() {
     event.preventDefault()
     setPageError('')
     setFormError('')
+    setClientNameError('')
+    setClientEmailError('')
+    setClientPhoneError('')
     if (!token) return
     const name = clientName.trim()
     const emailValue = clientEmail.trim()
     const phone = clientPhone.trim()
     const phoneDigits = phone.replace(/\D/g, '')
     if (name.length < 2 || name.length > 160) {
-      setFormError('O nome precisa ter entre 2 e 160 caracteres.')
+      setClientNameError('O nome precisa ter entre 2 e 160 caracteres.')
       return
     }
     if (emailValue && (emailValue.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue))) {
-      setFormError('Informe um e-mail válido.')
+      setClientEmailError('Informe um e-mail válido.')
       return
     }
     if (phone && phoneDigits.length !== 10 && phoneDigits.length !== 11) {
-      setFormError('Informe um telefone com DDD e 10 ou 11 dígitos.')
+      setClientPhoneError('Informe um telefone com DDD e 10 ou 11 dígitos.')
       return
     }
     setSaving(true)
@@ -255,7 +270,13 @@ function App() {
       setNotice('Cliente cadastrado com sucesso')
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) handleApiError(error)
-      else setFormError(errorMessage(error))
+      else {
+        const message = errorMessage(error)
+        if (/nome/i.test(message)) setClientNameError(message)
+        else if (/e-?mail/i.test(message)) setClientEmailError(message)
+        else if (/telefone/i.test(message)) setClientPhoneError(message)
+        else setFormError(message)
+      }
     } finally { setSaving(false) }
   }
 
@@ -299,8 +320,8 @@ function App() {
       </>}
       </section>
     </main>
-    {modal === 'process' && <div className="modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!saving)setModal(null)}}><form className="process-modal" noValidate onSubmit={submitProcess} aria-labelledby="modal-title"><header><div><span className="modal-kicker">CADASTRO NO ADLO</span><h2 id="modal-title">Novo processo</h2><p>{board?'O processo será salvo e vinculado ao quadro.':'Preencha os dados principais do processo.'}</p></div><button type="button" className="icon-button" aria-label="Fechar" onClick={()=>setModal(null)} disabled={saving}><X size={18}/></button></header><label>Nome do processo<input autoFocus value={processTitle} onChange={event=>setProcessTitle(event.target.value)} placeholder="Ex.: Revisão de benefício" maxLength={200} required/></label><label>Número do processo<input aria-invalid={Boolean(processNumberError)} aria-describedby={processNumberError?'process-number-error':undefined} value={processNumber} onChange={event=>{setProcessNumber(event.target.value);setProcessNumberError('')}} placeholder="Opcional" maxLength={25}/>{processNumberError&&<span className="inline-error field-error" id="process-number-error" role="alert">{processNumberError}</span>}</label><label>Cliente<select value={clientId} onChange={event=>setClientId(event.target.value)} required disabled={!availableClients.length}><option value="" disabled>Selecione um cliente</option>{availableClients.map(client=><option key={client.id} value={client.id}>{client.nome}</option>)}</select></label><label>Área<select value={area} onChange={event=>setArea(event.target.value as typeof area)}><option value="INSS">INSS</option><option value="DPVAT">DPVAT</option></select></label><label>Data de abertura<input type="date" value={processDate} onChange={event=>setProcessDate(event.target.value)} required/></label>{!availableClients.length&&<div className="inline-error" role="alert">Cadastre um cliente ativo antes de criar o processo.</div>}{formError&&<div className="inline-error" role="alert">{formError}</div>}<footer><button type="button" className="secondary-button" onClick={()=>setModal(null)} disabled={saving}>Cancelar</button><button className="primary-button" type="submit" disabled={saving||!availableClients.length}>{saving?<LoaderCircle size={16} className="spin"/>:<Plus size={16}/>} Criar processo</button></footer></form></div>}
-    {modal === 'client' && <div className="modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!saving)setModal(null)}}><form className="process-modal" noValidate onSubmit={submitClient} aria-labelledby="client-modal-title"><header><div><span className="modal-kicker">CADASTRO NO ADLO</span><h2 id="client-modal-title">Novo cliente</h2><p>Os campos opcionais podem ser preenchidos depois.</p></div><button type="button" className="icon-button" aria-label="Fechar" onClick={()=>setModal(null)} disabled={saving}><X size={18}/></button></header><label>Nome completo<input autoFocus value={clientName} onChange={event=>setClientName(event.target.value)} placeholder="Nome do cliente" maxLength={160} minLength={2} required/></label><label>E-mail<input type="email" value={clientEmail} onChange={event=>setClientEmail(event.target.value)} placeholder="cliente@email.com" maxLength={254}/></label><label>Telefone<input type="tel" value={clientPhone} onChange={event=>setClientPhone(event.target.value)} placeholder="(11) 99999-9999"/></label>{formError&&<div className="inline-error" role="alert">{formError}</div>}<footer><button type="button" className="secondary-button" onClick={()=>setModal(null)} disabled={saving}>Cancelar</button><button className="primary-button" type="submit" disabled={saving||clientName.trim().length<2}>{saving?<LoaderCircle size={16} className="spin"/>:<Plus size={16}/>} Cadastrar cliente</button></footer></form></div>}    {notice && <div className="toast" role="status"><Check size={16}/>{notice}<button aria-label="Fechar aviso" onClick={()=>setNotice('')}><X size={15}/></button></div>}
+    {modal === 'process' && <div className="modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!saving)setModal(null)}}><form className="process-modal" noValidate onSubmit={submitProcess} aria-labelledby="modal-title"><header><div><span className="modal-kicker">CADASTRO NO ADLO</span><h2 id="modal-title">Novo processo</h2><p>{board?'O processo será salvo e vinculado ao quadro.':'Preencha os dados principais do processo.'}</p></div><button type="button" className="icon-button" aria-label="Fechar" onClick={()=>setModal(null)} disabled={saving}><X size={18}/></button></header><label>Nome do processo<input autoFocus aria-invalid={Boolean(processTitleError)} aria-describedby={processTitleError?'process-title-error':undefined} value={processTitle} onChange={event=>{setProcessTitle(event.target.value);setProcessTitleError('')}} placeholder="Ex.: Revisão de benefício" maxLength={200}/>{processTitleError&&<span className="inline-error field-error" id="process-title-error" role="alert">{processTitleError}</span>}</label><label>Número do processo<input aria-invalid={Boolean(processNumberError)} aria-describedby={processNumberError?'process-number-error':undefined} value={processNumber} onChange={event=>{setProcessNumber(event.target.value);setProcessNumberError('')}} placeholder="Opcional" maxLength={25}/>{processNumberError&&<span className="inline-error field-error" id="process-number-error" role="alert">{processNumberError}</span>}</label><label>Cliente<select aria-invalid={Boolean(processClientError)} aria-describedby={processClientError?'process-client-error':undefined} value={clientId} onChange={event=>{setClientId(event.target.value);setProcessClientError('')}} disabled={!availableClients.length}><option value="" disabled>Selecione um cliente</option>{availableClients.map(client=><option key={client.id} value={client.id}>{client.nome}</option>)}</select>{processClientError&&<span className="inline-error field-error" id="process-client-error" role="alert">{processClientError}</span>}</label><label>Área<select value={area} onChange={event=>setArea(event.target.value as typeof area)}><option value="INSS">INSS</option><option value="DPVAT">DPVAT</option></select></label><label>Data de abertura<input type="date" aria-invalid={Boolean(processDateError)} aria-describedby={processDateError?'process-date-error':undefined} value={processDate} onChange={event=>{setProcessDate(event.target.value);setProcessDateError('')}}/>{processDateError&&<span className="inline-error field-error" id="process-date-error" role="alert">{processDateError}</span>}</label>{!availableClients.length&&<div className="inline-error" role="alert">Cadastre um cliente ativo antes de criar o processo.</div>}{formError&&<div className="inline-error" role="alert">{formError}</div>}<footer><button type="button" className="secondary-button" onClick={()=>setModal(null)} disabled={saving}>Cancelar</button><button className="primary-button" type="submit" disabled={saving||!availableClients.length}>{saving?<LoaderCircle size={16} className="spin"/>:<Plus size={16}/>} Criar processo</button></footer></form></div>}
+    {modal === 'client' && <div className="modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!saving)setModal(null)}}><form className="process-modal" noValidate onSubmit={submitClient} aria-labelledby="client-modal-title"><header><div><span className="modal-kicker">CADASTRO NO ADLO</span><h2 id="client-modal-title">Novo cliente</h2><p>Os campos opcionais podem ser preenchidos depois.</p></div><button type="button" className="icon-button" aria-label="Fechar" onClick={()=>setModal(null)} disabled={saving}><X size={18}/></button></header><label>Nome completo<input autoFocus aria-invalid={Boolean(clientNameError)} aria-describedby={clientNameError?'client-name-error':undefined} value={clientName} onChange={event=>{setClientName(event.target.value);setClientNameError('')}} placeholder="Nome do cliente" maxLength={160}/>{clientNameError&&<span className="inline-error field-error" id="client-name-error" role="alert">{clientNameError}</span>}</label><label>E-mail<input type="email" aria-invalid={Boolean(clientEmailError)} aria-describedby={clientEmailError?'client-email-error':undefined} value={clientEmail} onChange={event=>{setClientEmail(event.target.value);setClientEmailError('')}} placeholder="cliente@email.com" maxLength={254}/>{clientEmailError&&<span className="inline-error field-error" id="client-email-error" role="alert">{clientEmailError}</span>}</label><label>Telefone<input type="tel" aria-invalid={Boolean(clientPhoneError)} aria-describedby={clientPhoneError?'client-phone-error':undefined} value={clientPhone} onChange={event=>{setClientPhone(event.target.value);setClientPhoneError('')}} placeholder="(11) 99999-9999"/>{clientPhoneError&&<span className="inline-error field-error" id="client-phone-error" role="alert">{clientPhoneError}</span>}</label>{formError&&<div className="inline-error" role="alert">{formError}</div>}<footer><button type="button" className="secondary-button" onClick={()=>setModal(null)} disabled={saving}>Cancelar</button><button className="primary-button" type="submit" disabled={saving||clientName.trim().length<2}>{saving?<LoaderCircle size={16} className="spin"/>:<Plus size={16}/>} Cadastrar cliente</button></footer></form></div>}    {notice && <div className="toast" role="status"><Check size={16}/>{notice}<button aria-label="Fechar aviso" onClick={()=>setNotice('')}><X size={15}/></button></div>}
   </div>
 }
 
