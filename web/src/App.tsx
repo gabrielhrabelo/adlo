@@ -55,6 +55,17 @@ function App() {
   const [reloadKey, setReloadKey] = useState(0)
   const searchRef = useRef<HTMLInputElement>(null)
 
+  useEffect(() => {
+    setFormError('')
+    setProcessNumberError('')
+    setProcessTitleError('')
+    setProcessClientError('')
+    setProcessDateError('')
+    setClientNameError('')
+    setClientEmailError('')
+    setClientPhoneError('')
+  }, [modal])
+
   const logout = useCallback(() => {
     sessionStorage.removeItem(API_TOKEN_KEY)
     setToken(null)
