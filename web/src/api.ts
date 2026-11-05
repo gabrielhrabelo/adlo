@@ -43,7 +43,6 @@ export interface ProcessoResumo {
   titulo: string
   area: 'INSS' | 'DPVAT'
   status: string
-  cliente: { id: string; nome: string }
 }
 
 export interface ClienteResumo {
