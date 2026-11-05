@@ -3,7 +3,7 @@ services:
     name: adlo-api
     runtime: node
     plan: free
-    buildCommand: pnpm install --prod=false --frozen-lockfile && pnpm db:generate
+    buildCommand: pnpm install --prod=false --no-frozen-lockfile && pnpm db:generate
     startCommand: pnpm exec prisma migrate deploy && pnpm start
     envVars:
       - key: NODE_ENV
