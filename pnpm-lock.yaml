@@ -999,7 +999,7 @@ packages:
     resolution: {integrity: sha512-4wW4RxSmvPXLrh5mgQEiu43qU3bw44N2ss4FTkTkQIbprUhE+/s43QX0j/ttcztdWK7PEkHqVthdc5GdEGDvjA==}
 
   fastify@5.12.8:
-    resolution: {tarball: 'https://registry.npmjs.org/fastify/-/fastify-5.12.8.tgz'}
+    resolution: {integrity: sha512-moP8exb2sCHLUbJkwp+I6C0padhy4D8lp0SdmzY7HhSdZuqm7O/u3o2aq7u8okaQ//33QDzj3G/u+FsSdB8Qzw==}
 
   '@fastify/cors@11.4.1':
     resolution: {tarball: 'https://registry.npmjs.org/@fastify/cors/-/cors-11.4.1.tgz'}
