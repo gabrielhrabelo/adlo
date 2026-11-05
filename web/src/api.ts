@@ -48,7 +48,18 @@ export interface ProcessoResumo {
 export interface ClienteResumo {
   id: string
   nome: string
+  cpfCnpj?: string | null
+  email?: string | null
+  telefonePrincipal?: string | null
+  totalProcessos?: number
   ativo: boolean
+}
+
+export interface ProcessoListItem extends ProcessoResumo {
+  cliente: { id: string; nome: string }
+  tribunal?: string | null
+  dataAbertura?: string
+  createdAt?: string
 }
 
 export class ApiError extends Error {
@@ -87,7 +98,12 @@ export const api = {
     method: 'POST', body: JSON.stringify({ nome }),
   }),
   clients: (token: string, usuarioId: string) => request<{ items: ClienteResumo[] }>(`/clientes?page=1&pageSize=100&ativo=true&usuarioId=${encodeURIComponent(usuarioId)}&ordenarPor=nome`, token),
-  createProcess: (token: string, input: { clienteId: string; titulo: string; area: 'INSS' | 'DPVAT' }) => request<ProcessoResumo>('/processos', token, {
+  allClients: (token: string, usuarioId: string, busca = '') => request<{ items: ClienteResumo[]; total: number }>(`/clientes?page=1&pageSize=100&usuarioId=${encodeURIComponent(usuarioId)}&ordenarPor=nome${busca ? `&busca=${encodeURIComponent(busca)}` : ''}`, token),
+  createClient: (token: string, input: { nome: string; cpfCnpj?: string | null; email?: string | null; telefones?: { numero: string }[] }) => request<ClienteResumo>('/clientes', token, {
+    method: 'POST', body: JSON.stringify(input),
+  }),
+  processes: (token: string) => request<{ items: ProcessoListItem[]; total: number }>('/processos?page=1&pageSize=100&ordenarPor=dataAbertura', token),
+  createProcess: (token: string, input: { clienteId: string; titulo: string; area: 'INSS' | 'DPVAT'; numeroProcesso?: string | null; dataAbertura?: string; tribunal?: string | null }) => request<ProcessoResumo>('/processos', token, {
     method: 'POST', body: JSON.stringify(input),
   }),
   addCard: (token: string, boardId: string, processoId: string) => request<unknown>(`/boards/${encodeURIComponent(boardId)}/cards`, token, {
