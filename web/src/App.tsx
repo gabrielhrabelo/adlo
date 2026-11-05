@@ -214,7 +214,7 @@ function App() {
   return <div className="app-shell">
     <aside className={`sidebar ${mobileNav ? 'sidebar-open' : ''} ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`} style={{width:sidebarCollapsed?72:sidebarWidth}}>
       <div className="sidebar-header"><a className="brand" href="#kanban" aria-label="ADLO, início"><span>adlo<span className="brand-dot">.</span></span></a><button className="sidebar-toggle" aria-label={sidebarCollapsed?'Expandir menu lateral':'Recolher menu lateral'} title={sidebarCollapsed?'Expandir menu':'Recolher menu'} onClick={()=>setSidebarCollapsed(value=>!value)}>{sidebarCollapsed?<PanelLeftOpen size={18}/>:<PanelLeftClose size={18}/>}</button></div>
-      <div className="workspace"><div className="workspace-icon">{initials(profile?.nome ?? 'A')}</div><div className="workspace-copy"><strong>{profile?.nome ?? 'Meu escritório'}</strong><span>{profile?.papel === 'ADVOGADO' ? 'Advogado' : profile?.papel === 'ESTAGIARIO' ? 'Estagiário' : 'Administrativo'}</span></div><ChevronDown size={15} className="muted"/></div>
+      <div className="workspace"><div className="workspace-copy"><strong>{profile?.nome ?? 'Meu escritório'}</strong><span>{profile?.papel === 'ADVOGADO' ? 'Advogado' : profile?.papel === 'ESTAGIARIO' ? 'Estagiário' : 'Administrativo'}</span></div><ChevronDown size={15} className="muted"/></div>
       <div className="nav-label">ESCRITÓRIO</div>
       <nav className="side-nav" aria-label="Navegação principal">
         <button className={`nav-item ${page==='kanban'?'active':''}`} aria-current={page==='kanban'?'page':undefined} onClick={()=>{setPage('kanban');setMobileNav(false)}}><LayoutGrid size={18}/><span>Quadro</span></button>
