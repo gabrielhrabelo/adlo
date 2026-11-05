@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { api, apiUrl, ApiError, type BoardDetail, type BoardSummary, type ClienteResumo, type ProcessoListItem, type UserProfile } from './api'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { api, ApiError, type BoardDetail, type BoardSummary, type ClienteResumo, type ProcessoListItem, type UserProfile } from './api'
 import { BriefcaseBusiness, CalendarDays, Check, ChevronDown, ChevronRight, CircleHelp, Clock3, FileText, LayoutGrid, LoaderCircle, LogOut, Menu, MoreHorizontal, Plus, RefreshCw, Search, SlidersHorizontal, Users, X, PanelLeftClose, PanelLeftOpen, GripVertical } from 'lucide-react'
 
 const API_TOKEN_KEY = 'adlo.accessToken'
