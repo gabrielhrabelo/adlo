@@ -135,6 +135,19 @@ pnpm dev
 
 A porta padrão configurada no exemplo de ambiente é `3333`. Confira os logs do servidor para confirmar a inicialização.
 
+### Frontend Vite
+
+Com o backend em execução, configure as origens do frontend em `CORS_ORIGINS` no `.env`. Por padrão, a API aceita `localhost` e `127.0.0.1` nas portas 5173 e 4173. Em outros ambientes, informe as origens separadas por vírgulas.
+
+```powershell
+cd web
+Copy-Item .env.example .env
+pnpm install
+pnpm dev
+```
+
+O frontend usa `VITE_API_URL` (padrão `http://localhost:3333`), autentica com as credenciais do ADLO e carrega somente quadros e dados pertencentes ao usuário conectado. O cadastro de processos usa clientes ativos existentes.
+
 ### 7. Crie o primeiro usuário e teste a API
 
 ```bash
@@ -185,3 +198,4 @@ Contribuições não são aceitas no momento. Apenas para os integrantes do proj
 ## Licença
 
 Este projeto está licenciado sob a **MIT License**. Consulte o arquivo [`LICENSE`](./LICENSE) para ler o texto completo da licença.
+
