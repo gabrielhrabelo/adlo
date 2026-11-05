@@ -44,3 +44,5 @@ body,.app-shell,.login-screen,.loading-screen,.main-area,.page-content{backgroun
 .sidebar-collapsed .sidebar-header .sidebar-toggle{margin:0}
 .top-actions{margin-left:auto}
 .login-screen,.loading-screen{background:#fff!important}
+@media(max-width:760px){.mobile-menu-floating{position:fixed;top:12px;left:12px;z-index:7;background:#fff;border:1px solid #eee}.page-content{padding-top:64px}}
+
